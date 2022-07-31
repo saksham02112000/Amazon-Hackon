@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ethers } from "ethers";
 import SupplyChain from "../../artifacts/contracts/AmazonDelivery.sol/AmazonDelivery.json";
-import {Snackbar} from "@mui/material";
+import { Snackbar } from "@mui/material";
 import MuiAlert from '@mui/material/Alert';
 
 const Alert = React.forwardRef(function Alert(props, ref) {
@@ -42,28 +42,28 @@ function HomePage() {
         const signer = provider.getSigner();
         const contract = new ethers.Contract(contractAddress, SupplyChain.abi, signer);
 
-        try{
-            const placeOrderDetails = await contract.placeOrder(1, "Coffee", ethers.utils.parseEther("0.01"), "ke474rf", 1, 2, 3, 1234, {gasLimit: 3000000, value: ethers.utils.parseEther("0.01")} );
+        try {
+            const placeOrderDetails = await contract.placeOrder(1, "Coffee", ethers.utils.parseEther("0.01"), "ke474rf", 1, 2, 3, 1234, { gasLimit: 3000000, value: ethers.utils.parseEther("0.01") });
             placeOrderDetails.wait();
             console.log(placeOrderDetails);
             setSuccessSnackbarMessage("Order Placed")
             handleClickSuccess();
         }
-        catch (err){
+        catch (err) {
             setErrorSnackbarMessage(err.message);
             handleClickError();
         }
 
     }
 
-    const getOrderDetails= async() =>{
+    const getOrderDetails = async () => {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         // const provider = new ethers.providers.JsonRpcProvider("http://localhost:8545");
         const signer = provider.getSigner();
         const contract = new ethers.Contract(contractAddress, SupplyChain.abi, signer);
         // const contract = new ethers.Contract(contractAddress, SupplyChain.abi, provider);
 
-        try{
+        try {
             const orderHistoryDetails = await contract.getOrderStatus(1);
             const setValOrderHistory = () => {
                 let returnVal = [];
@@ -96,8 +96,7 @@ function HomePage() {
             }
             setOrderHistory(setValOrderHistory);
         }
-
-        catch (err){
+        catch (err) {
             setErrorSnackbarMessage(err.message);
             handleClickError();
         }
@@ -109,15 +108,15 @@ function HomePage() {
         const contract = new ethers.Contract(contractAddress, SupplyChain.abi, signer);
 
         try {
-            const orderTransferDetails = await contract.transferOrder(1, "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC", 2, 2, 4, {gasLimit: 3000000});
+            const orderTransferDetails = await contract.transferOrder(1, "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC", 2, 2, 4, { gasLimit: 3000000 });
             orderTransferDetails.wait();
             console.log(orderTransferDetails);
             setSuccessSnackbarMessage("Order transferred successfully");
             handleClickSuccess();
         } catch (err) {
-            if(err.message.search("Current owner nor carrying out transaction")!==-1)
+            if (err.message.search("Current owner nor carrying out transaction") !== -1)
                 setErrorSnackbarMessage("Access Denied: Current owner nor carrying out transaction");
-            else if(err.message.search("function selector was not recognized and there's no fallback function")!==-1)
+            else if (err.message.search("function selector was not recognized and there's no fallback function") !== -1)
                 setErrorSnackbarMessage("Order Doesn't exist");
             else
                 setErrorSnackbarMessage(err.message);
@@ -131,7 +130,7 @@ function HomePage() {
         const contract = new ethers.Contract(contractAddress, SupplyChain.abi, signer);
 
         try {
-            const approveRefund = await contract.approveRefund(1, {gasLimit: 3000000});
+            const approveRefund = await contract.approveRefund(1, { gasLimit: 3000000 });
             approveRefund.wait();
             console.log(approveRefund);
             setSuccessSnackbarMessage("Order transferred successfully");
@@ -166,7 +165,7 @@ function HomePage() {
 
 
     const successSnackbar = () => {
-    return(
+        return (
             <Snackbar open={openSuccessSnackbar} autoHideDuration={6000} onClose={handleCloseSuccess}>
                 <Alert onClose={handleCloseSuccess} severity="success" sx={{ width: '100%' }}>
                     {successSnackbarMessage}
@@ -190,7 +189,7 @@ function HomePage() {
 
 
     const errorSnackbar = () => {
-    return(
+        return (
             <Snackbar open={openErrorSnackbar} autoHideDuration={6000} onClose={handleCloseError}>
                 <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
                     {errorSnackbarMessage}
