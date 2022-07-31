@@ -29,22 +29,23 @@ function App() {
                 <Route exact path="/signup/seller" element={<SignUpSeller />} />
                 <Route exact path="/signup/buyer" element={<SignUpBuyer />} />
                 <Route exact path="/login" element={<LoginPage />} />
-                <Route
+                {/* <Route
                     path="/home"
                     element={
                         <AuthenticatedRoute >
                             <HomePage />
                         </AuthenticatedRoute>
                     }
-                />
+                /> */}
                 <Route
-                    path="/homepage"
+                    path="/home"
                     element={
                         <AuthenticatedRoute >
                             <UserHomePage />
                         </AuthenticatedRoute>
                     }
                 />
+                <Route exact path="*" element={<Navigate to="/home" />} />
             </Routes>
         </BrowserRouter >
 
