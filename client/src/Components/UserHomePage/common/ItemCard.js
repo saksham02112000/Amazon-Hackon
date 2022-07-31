@@ -14,7 +14,7 @@ export default function ItemCard({ item }) {
                 component="img"
                 alt="green iguana"
                 height="140"
-                image={`${item.image_link}`}
+                image={`${process.env.REACT_APP_BASE_URL}` + `${item.image_link}`}
             />
             <CardContent>
                 <Typography gutterBottom variant="h5" component="div" style={{ display: "flex", justifyContent: "space-between", alignContent: "center" }}>

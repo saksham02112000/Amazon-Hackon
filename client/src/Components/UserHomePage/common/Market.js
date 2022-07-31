@@ -23,7 +23,7 @@ export default function Market() {
     }, [])
     console.log(items);
     return (
-        <div>
+        <div id="market-div">
             <h1>All items</h1>
             {items !== undefined ?
                 <Grid container spacing={{ xs: 2, md: 2 }} columns={{ xs: 4, sm: 8, md: 12 }}>{

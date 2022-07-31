@@ -15,6 +15,7 @@ import ListItemText from '@mui/material/ListItemText';
 import MailIcon from '@mui/icons-material/Mail';
 import MenuIcon from '@mui/icons-material/Menu';
 import Toolbar from '@mui/material/Toolbar';
+import LogoutIcon from '@mui/icons-material/Logout';
 import Typography from '@mui/material/Typography';
 import StoreIcon from '@mui/icons-material/Store';
 import HistoryIcon from '@mui/icons-material/History';
@@ -23,6 +24,7 @@ import Orders from './Orders';
 import { AuthContext } from '../../../context/Authcontext';
 import AddItemForm from './AddItemForm';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
+import '../style/index.css'
 const drawerWidth = 240;
 
 function AmazonDrawer(props) {
@@ -54,6 +56,16 @@ function AmazonDrawer(props) {
             </ListItemButton>
           </ListItem>
         ))}
+      </List>
+      <List>
+        <ListItem key={'logout'} disablePadding >
+          <ListItemButton>
+            <ListItemIcon>
+              <LogoutIcon />
+            </ListItemIcon>
+            <ListItemText primary={'Logout'} />
+          </ListItemButton>
+        </ListItem>
       </List>
     </div>
   );
