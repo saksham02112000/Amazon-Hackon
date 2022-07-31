@@ -85,7 +85,29 @@ function HomePage() {
         } catch (err) {
             if(err.message.search("Current owner nor carrying out transaction")!==-1)
                 setErrorSnackbarMessage("Access Denied: Current owner nor carrying out transaction");
-            if(err.message.search("function selector was not recognized and there's no fallback function")!==-1)
+            else if(err.message.search("function selector was not recognized and there's no fallback function")!==-1)
+                setErrorSnackbarMessage("Order Doesn't exist");
+            else
+                setErrorSnackbarMessage(err.message);
+            handleClickError();
+        }
+    }
+
+    const refundTransaction = async () => {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(contractAddress, SupplyChain.abi, signer);
+
+        try {
+            const approveRefund = await contract.approveRefund(1, {gasLimit: 3000000});
+            approveRefund.wait();
+            console.log(approveRefund);
+            setSuccessSnackbarMessage("Order transferred successfully");
+            handleClickSuccess();
+        } catch (err) {
+            if (err.message.search("Access to refund Denied") !== -1)
+                setErrorSnackbarMessage("Access Denied: Only seller can carry out transaction");
+            else if (err.message.search("function selector was not recognized and there's no fallback function") !== -1)
                 setErrorSnackbarMessage("Order Doesn't exist");
             else
                 setErrorSnackbarMessage(err.message);
@@ -145,6 +167,31 @@ function HomePage() {
         )
     }
 
+    const [contractBalance, setContractBalance] = useState("");
+
+    const fetchContractBalance = async () => {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(contractAddress, SupplyChain.abi, signer);
+
+        const contractBalance = await contract.provider.getBalance(contract.address)
+        console.log(ethers.utils.formatEther(contractBalance));
+        setContractBalance(ethers.utils.formatEther(contractBalance));
+
+    }
+
+    const [customerBalance, setCustomerBalance] = useState("");
+
+    const fetchCustomerBalance = async () => {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(contractAddress, SupplyChain.abi, signer);
+
+        const customerBalanceVal = await provider.getBalance("0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC");
+        console.log(ethers.utils.formatEther(customerBalanceVal));
+        setCustomerBalance(ethers.utils.formatEther(customerBalanceVal));
+
+    }
 
     return (
         <div className='wrapper'>
@@ -163,6 +210,15 @@ function HomePage() {
             <button className="transferOrder" onClick={transferOrderDetails}>
                 Transfer Order
             </button>
+            <button className="refundAmount" onClick={refundTransaction}>
+                Refund Transaction
+            </button>
+            <div className="customerBalance" onClick={fetchCustomerBalance}>
+                Fetch Customer Balance: {customerBalance}
+            </div>
+            <div className="customerBalance" onClick={fetchContractBalance}>
+                Fetch Contract Balance: {contractBalance}
+            </div>
             {successSnackbar()}
             {errorSnackbar()}
         </div>

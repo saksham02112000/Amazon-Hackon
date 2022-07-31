@@ -1,14 +1,52 @@
 import './App.css';
-import NFTMarketplace from "./Components/NFTMarketplace/NFTCreate";
-import NFTHome from "./Components/NFTMarketplace/NFTHome";
-import MyNFT from "./Components/NFTMarketplace/MyNFT/MyNFT";
+import { Route, Routes, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
 import HomePage from "./Components/SupplyChain";
+import {useContext} from "react";
+import {AuthContext} from "./context/Authcontext";
+import LoginPage from "./Components/Login";
+import SignUpSeller from "./Components/SignUpSeller";
+import SignUpBuyer from "./Components/SignUpBuyer";
+
 
 function App() {
+
+    function AuthenticatedRoute({ children }) {
+        const { loggedIn } = useContext(AuthContext);
+        console.log(loggedIn);
+        let location = useLocation();
+        // if (!loggedIn) {
+        //     return <Navigate to="/login" state={{ from: location }} replace />;
+        // }
+        return children;
+    }
+
+
   return (
-    <div className="App">
-      <HomePage />
-    </div>
+
+      <BrowserRouter>
+          <Routes>
+              <Route exact path="/signup/seller" element={<SignUpSeller />} />
+              <Route exact path="/signup/buyer" element={<SignUpBuyer />} />
+              <Route exact path="/login" element={<LoginPage />} />
+              <Route
+                  path="/home"
+                  element={
+                      <AuthenticatedRoute >
+                          <HomePage />
+                      </AuthenticatedRoute>
+                  }
+              />
+          </Routes>
+      </BrowserRouter >
+
+
+
+
+
+    // <div className="App">
+    //     <HomePage />
+    // </div>
   );
 }
 
