@@ -7,11 +7,11 @@ import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
 import OrderCard from './OrderCard';
 import { ethers } from 'ethers';
-export default function Market() {
+export default function SellerItems() {
     const [items, setItems] = useState(undefined);
-    
+
     async function getItems() {
-        return await fetch(`${process.env.REACT_APP_BASE_URL}/order/buyer_list`, {
+        return await fetch(`${process.env.REACT_APP_BASE_URL}/item/seller`, {
             'method': "GET",
             headers: {
                 "x-access-token": localStorage.getItem("authtoken"),
@@ -28,13 +28,13 @@ export default function Market() {
     return (
         <div id="market-div">
 
-            <h1>Order histroy</h1>
+            <h1>Your listed items</h1>
             {items !== undefined ?
                 <Grid container spacing={{ xs: 2, md: 2 }} columns={{ xs: 4, sm: 8, md: 12 }}>{
                     items.map((item, index) => {
                         return (
                             <Grid item xs={2} sm={3} md={3} lg={3} key={index}>
-                                <OrderCard item={item} />
+                                <ItemCard item={item} sellerItem={true} />
                             </Grid>
                         )
                     })}

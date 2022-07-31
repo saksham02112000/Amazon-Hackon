@@ -20,3 +20,6 @@
     border-radius: 12px;
     /* background-size: cover; */
 }
+.delete-item:hover{
+    cursor: pointer;
+}

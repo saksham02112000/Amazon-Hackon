@@ -25,28 +25,52 @@ import { AuthContext } from '../../../context/Authcontext';
 import AddItemForm from './AddItemForm';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import '../style/index.css'
+import SellerItems from './SellerItems';
+import Refunds from './Refunds';
+
+import SavingsIcon from '@mui/icons-material/Savings';
 const drawerWidth = 240;
 
 function AmazonDrawer(props) {
   const { window } = props;
-  const { user } = React.useContext(AuthContext);
+  const { user, loggedIn } = React.useContext(AuthContext);
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [currComponent, setCurrComponent] = React.useState(<Market />);
-  const components = {
-    'Market': { 'icon': [<StoreIcon />], content: [<Market />] },
-    'Your Orders': { 'icon': [<HistoryIcon />], content: [<Orders />] },
-    'New Item': { 'icon': [<AddCircleIcon />], content: [<AddItemForm />] }
-  };
+  let components;
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
+  console.log(user.role);
+  if (user !== undefined && user.role === 'SELLER') {
+    components = {
+      // 'Market': { 'icon': [<StoreIcon />], content: [<Market />] },
+      'Your Items': { 'icon': [<StoreIcon />], content: [<SellerItems />] },
+      'Refunds': { 'icon': [<SavingsIcon />], content: [<Refunds person={"seller"} />] },
+      // 'Your Orders': { 'icon': [<HistoryIcon />], content: [<Orders />] },
+      'New Item': { 'icon': [<AddCircleIcon />], content: [<AddItemForm />] }
 
+    };
+  } else {
+    components = {
+      'Market': { 'icon': [<StoreIcon />], content: [<Market />] },
+      'Refunds': { 'icon': [<SavingsIcon />], content: [<Refunds person={"buyer"} />] },
+      'Your Orders': { 'icon': [<HistoryIcon />], content: [<Orders />] }
+
+    };
+
+  }
+  React.useEffect(() => {
+    if (user && user.role === "SELLER") {
+      setCurrComponent(<SellerItems />);
+    }
+  }, [])
+  const arr = Object.keys(components);
   const drawer = (
     <div>
       <Toolbar />
       <Divider />
       <List>
-        {['Market', 'Your Orders', 'New Item'].map((text, index) => (
+        {arr.map((text, index) => (
           <ListItem key={text} disablePadding >
             <ListItemButton onClick={() => { setCurrComponent(components[text].content[0]); }}>
               <ListItemIcon>
