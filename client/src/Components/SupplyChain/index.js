@@ -62,9 +62,39 @@ function HomePage() {
         const contract = new ethers.Contract(contractAddress, SupplyChain.abi, signer);
 
         try{
-            const orderHistoryDetails = contract.getOrderStatus(1);
-            console.log(orderHistoryDetails);
+            const orderHistoryDetails = await contract.getOrderStatus(1);
+            const setValOrderHistory = () => {
+                let returnVal = [];
+                for (let i = 0; i < orderHistoryDetails.length; i++) {
+                    const itrValue = {
+                        oid: orderHistoryDetails[i].oid.toNumber(),
+                        orderDetails: {
+                            oid: orderHistoryDetails[i].orderDetails.oid.toNumber(),
+                            boxHash: orderHistoryDetails[i].orderDetails.boxHash,
+                            productId: orderHistoryDetails[i].orderDetails.productId.toNumber(),
+                            orderProductName: orderHistoryDetails[i].orderDetails.orderProductName,
+                            orderValue: orderHistoryDetails[i].orderDetails.orderValue.toNumber(),
+                            customerAddress: orderHistoryDetails[i].orderDetails.customerAddress
+                        },
+                        physicalReadings: {
+                            accelerometerX: orderHistoryDetails[i].physicalReadings.accelerometerX.toNumber(),
+                            accelerometerY: orderHistoryDetails[i].physicalReadings.accelerometerY.toNumber(),
+                            accelerometerZ: orderHistoryDetails[i].physicalReadings.accelerometerZ.toNumber(),
+                        },
+                        transferredOnBackend: orderHistoryDetails[i].transferredOnBackend,
+                        transactionTime: orderHistoryDetails[i].transactionTime.toNumber(),
+                        validQuality: orderHistoryDetails[i].validQuality,
+                        currentOwner: orderHistoryDetails[i].currentOwner,
+                        refundStatus: orderHistoryDetails[i].refundStatus,
+                        ownerType: orderHistoryDetails[i].ownerType
+                    }
+                    returnVal.push(itrValue);
+                }
+                return returnVal;
+            }
+            setOrderHistory(setValOrderHistory);
         }
+
         catch (err){
             setErrorSnackbarMessage(err.message);
             handleClickError();
