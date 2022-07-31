@@ -58,8 +58,10 @@ function HomePage() {
 
     const getOrderDetails= async() =>{
         const provider = new ethers.providers.Web3Provider(window.ethereum);
+        // const provider = new ethers.providers.JsonRpcProvider("http://localhost:8545");
         const signer = provider.getSigner();
         const contract = new ethers.Contract(contractAddress, SupplyChain.abi, signer);
+        // const contract = new ethers.Contract(contractAddress, SupplyChain.abi, provider);
 
         try{
             const orderHistoryDetails = await contract.getOrderStatus(1);
