@@ -139,7 +139,7 @@ function HomePage() {
         } catch (err) {
             if (err.message.search("Access to refund Denied") !== -1)
                 setErrorSnackbarMessage("Access Denied: Only seller can carry out transaction");
-            else if (err.message.search("function selector was not recognized and there's no fallback function") !== -1)
+            else if (err.mAlertessage.search("function selector was not recognized and there's no fallback function") !== -1)
                 setErrorSnackbarMessage("Order Doesn't exist");
             else
                 setErrorSnackbarMessage(err.message);

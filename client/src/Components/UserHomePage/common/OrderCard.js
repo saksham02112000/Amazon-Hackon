@@ -11,13 +11,156 @@ import Backdrop from '@mui/material/Backdrop';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import Fade from '@mui/material/Fade';
+import {useState} from "react";
+import {Snackbar} from "@mui/material";
+import MuiAlert from '@mui/material/Alert';
+import {ethers} from "ethers";
+import SupplyChain from "../../../artifacts/contracts/AmazonDelivery.sol/AmazonDelivery.json";
+
+const Alert = React.forwardRef(function Alert(props, ref) {
+    return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
 
 export default function OrderCard({ item }) {
+
+    const contractAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
     const [open, setOpen] = React.useState(false);
-    const handleOpen = () => setOpen(true);
+    const handleOpen =  () => {
+         setOpen(true);
+    }
     const handleClose = () => setOpen(false);
 
+    const [orderHistory, setOrderHistory] = useState([{
+        "oid": 0,
+        "orderDetails": {
+            "oid": 0,
+            "boxHash": "",
+            "productId": 0,
+            "orderProductName": "",
+            "orderValue": -1,
+            "customerAddress": ""
+        },
+        "physicalReadings": {
+            "accelerometerX": 0,
+            "accelerometerY": 0,
+            "accelerometerZ": 0
+        },
+        "transferredOnBackend": -1,
+        "transactionTime": -1,
+        "validQuality": true,
+        "currentOwner": "",
+        "refundStatus": true,
+        "ownerType": -1
+    }]);
+    console.log(orderHistory);
+
+
+    const [openSuccessSnackbar, setOpenSuccessSnackbar] = React.useState(false);
+    const [successSnackbarMessage, setSuccessSnackbarMessage] = useState("");
+    const handleClickSuccess = () => {
+        setOpenSuccessSnackbar(true);
+    };
+
+    const handleCloseSuccess = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setOpenSuccessSnackbar(false);
+    };
+
+
+    const successSnackbar = () => {
+        return(
+            <Snackbar open={openSuccessSnackbar} autoHideDuration={6000} onClose={handleCloseSuccess}>
+                <Alert onClose={handleCloseSuccess} severity="success" sx={{ width: '100%' }}>
+                    {successSnackbarMessage}
+                </Alert>
+            </Snackbar>
+        )
+    }
+    const [openErrorSnackbar, setOpenErrorSnackbar] = React.useState(false);
+    const [errorSnackbarMessage, setErrorSnackbarMessage] = useState("");
+
+    const handleClickError = () => {
+        setOpenErrorSnackbar(true);
+    };
+
+    const handleCloseError = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setOpenErrorSnackbar(false);
+    };
+
+
+    const errorSnackbar = () => {
+        return(
+            <Snackbar open={openErrorSnackbar} autoHideDuration={6000} onClose={handleCloseError}>
+                <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
+                    {errorSnackbarMessage}
+                </Alert>
+            </Snackbar>
+        )
+    }
+
+    const getOrderDetails= async(id) =>{
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        // const provider = new ethers.providers.JsonRpcProvider("http://localhost:8545");
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(contractAddress, SupplyChain.abi, signer);
+        // const contract = new ethers.Contract(contractAddress, SupplyChain.abi, provider);
+
+        try {
+            console.log(id)
+            const orderHistoryDetails = await contract.getOrderStatus(id);
+            console.log(orderHistoryDetails);
+            let returnVal = [];
+            // const setValOrderHistory = () => {
+                for (let i = 0; i < orderHistoryDetails.length; i++) {
+                    const itrValue = {
+                        oid: orderHistoryDetails[i].oid,
+                        orderDetails: {
+                            oid: orderHistoryDetails[i].orderDetails.oid,
+                            boxHash: orderHistoryDetails[i].orderDetails.boxHash,
+                            productId: orderHistoryDetails[i].orderDetails.productId,
+                            orderProductName: orderHistoryDetails[i].orderDetails.orderProductName,
+                            orderValue: ethers.utils.formatEther(orderHistoryDetails[i].orderDetails.orderValue),
+                            customerAddress: orderHistoryDetails[i].orderDetails.customerAddress
+                        },
+                        physicalReadings: {
+                            accelerometerX: orderHistoryDetails[i].physicalReadings.accelerometerX.toNumber(),
+                            accelerometerY: orderHistoryDetails[i].physicalReadings.accelerometerY.toNumber(),
+                            accelerometerZ: orderHistoryDetails[i].physicalReadings.accelerometerZ.toNumber(),
+                        },
+                        transferredOnBackend: orderHistoryDetails[i].transferredOnBackend,
+                        transactionTime: orderHistoryDetails[i].transactionTime.toNumber(),
+                        validQuality: orderHistoryDetails[i].validQuality,
+                        currentOwner: orderHistoryDetails[i].currentOwner,
+                        refundStatus: orderHistoryDetails[i].refundStatus,
+                        ownerType: orderHistoryDetails[i].ownerType
+                    }
+                    console.log(itrValue);
+                    returnVal.push(itrValue);
+                }
+            // }
+            //     setValOrderHistory();
+            //     console.log(setValOrderHistory);
+                setOrderHistory(returnVal);
+                handleOpen();
+            }
+
+        catch (err){
+            setErrorSnackbarMessage(err.message);
+            handleClickError();
+        }
+    }
+
+
+
+
+
     const style = {
+        color:"black",
         position: 'absolute',
         top: '50%',
         left: '50%',
@@ -52,7 +195,7 @@ export default function OrderCard({ item }) {
                 </Typography>
             </CardContent>
             <CardActions>
-                <Button variant="contained" onClick={handleOpen} size="small">View Details</Button>
+                <Button variant="contained" onClick={()=> getOrderDetails(item._id)} size="small">View Details</Button>
                 {/* <Button size="small">Learn More</Button> */}
             </CardActions>
             <Modal
@@ -69,15 +212,30 @@ export default function OrderCard({ item }) {
             >
                 <Fade in={open}>
                     <Box sx={style}>
-                        <Typography id="transition-modal-title" variant="h6" component="h2">
-                            Text in a modal
-                        </Typography>
-                        <Typography id="transition-modal-description" sx={{ mt: 2 }}>
-                            Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
-                        </Typography>
+                        {
+                            orderHistory.map((item, index)=>{
+                                return(
+                                    <>
+                                        <div><h3>{index + 1}</h3></div>
+                                          <div>OrderID: {item.oid}</div>
+                                          <div>CustomerAddress: {item.orderDetails.customerAddress}</div>
+                                          <div>Box Hash: {item.orderDetails.boxHash}</div>
+                                          <div>Product ID: {item.orderDetails.productId}</div>
+                                          <div>Product Name: {item.orderDetails.orderProductName}</div>
+                                          <div>Current Owner: {item.currentOwner}</div>
+                                          <div>Transferred On: {item.transferredOnBackend}</div>
+                                        <br />
+                                        <br/>
+                                      </>
+                                )
+                            })
+                        }
+
                     </Box>
                 </Fade>
             </Modal>
+            {successSnackbar()}
+            {errorSnackbar()}
         </Card >
     );
 }
