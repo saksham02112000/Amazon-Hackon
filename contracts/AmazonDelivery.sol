@@ -112,7 +112,7 @@ contract AmazonDelivery{
         _product.currentOwner = _transferredTo;
         _product.transferredOnBackend = block.timestamp;
         _product.transactionTime= block.timestamp;
-        (msg.sender == _product.orderDetails.customerAddress) ? _product.ownerType = OwnerType.Customer : _product.ownerType = OwnerType.Delivery;
+        (_transferredTo == _product.orderDetails.customerAddress) ? _product.ownerType = OwnerType.Customer : _product.ownerType = OwnerType.Delivery;
         history[_orderID].push(_product);
         emit transferOwnership(_orderID, _transferredTo);
     }
