@@ -2,7 +2,7 @@ import React from 'react';
 import { Button, TextField } from '@mui/material';
 export default function AddItemForm() {
     return (
-        <div>
+        <div id="add-form">
             <h1>Add New Item</h1>
             <TextField style={{ width: "500px" }} required label="Name" variant="outlined" type="text" className="productName" /><br /><br />
             <TextField style={{ width: "500px" }} required label="Description" variant="outlined" type="text" className="productDescription" /><br /><br />
