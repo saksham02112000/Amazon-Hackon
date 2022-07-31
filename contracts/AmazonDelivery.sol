@@ -129,6 +129,12 @@ contract AmazonDelivery{
         return history[_orderID][0].orderDetails.boxHash;
     }
 
+//    //when refund request is generated.. seller need to verify
+//    function getBoxDetails(uint _orderID) public view returns(string memory){
+//        require(msg.sender == history[_orderID][0].orderDetails.customerAddress, "Not the final customer");
+//        return history[_orderID][0].orderDetails.boxHash;
+//    }
+
     function approveRefund(uint _orderID) public {
         require(msg.sender==contractOwner, "Access to refund denied");
         ProductHistory memory productHistory;
