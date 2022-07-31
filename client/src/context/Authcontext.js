@@ -13,7 +13,7 @@ export const AuthContextProvider = ({ children }) => {
                     fetch(`${process.env.REACT_APP_BASE_URL}/auth/user/`, {
                         method: "GET",
                         headers: {
-                            'Authorization': `Bearer ${authtoken}`
+                            'x-access-token': `${authtoken}`
                         },
                     })
                         .then((res) => {
@@ -22,6 +22,7 @@ export const AuthContextProvider = ({ children }) => {
                         })
                         .then((data) => {
                             if (data) {
+                                console.log(data);
                                 setLoggedIn(true);
                                 setUser({username: data.username, id: data._id, role: data.role});
                                 console.log("bb")
