@@ -1,0 +1,172 @@
+import React, { useEffect, useState } from 'react';
+import { ethers } from "ethers";
+import SupplyChain from "../../artifacts/contracts/AmazonDelivery.sol/AmazonDelivery.json";
+import {Snackbar} from "@mui/material";
+import MuiAlert from '@mui/material/Alert';
+
+const Alert = React.forwardRef(function Alert(props, ref) {
+    return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
+
+function HomePage() {
+
+    const contractAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
+
+
+    const [orderHistory, setOrderHistory] = useState([{
+        "oid": 0,
+        "orderDetails": {
+            "oid": 0,
+            "boxHash": "",
+            "productId": 0,
+            "orderProductName": "",
+            "orderValue": -1,
+            "customerAddress": ""
+        },
+        "physicalReadings": {
+            "accelerometerX": 0,
+            "accelerometerY": 0,
+            "accelerometerZ": 0
+        },
+        "transferredOnBackend": -1,
+        "transactionTime": -1,
+        "validQuality": true,
+        "currentOwner": "",
+        "refundStatus": true,
+        "ownerType": -1
+    }]);
+
+    const placeOrder = async () => {
+
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(contractAddress, SupplyChain.abi, signer);
+
+        try{
+            const placeOrderDetails = await contract.placeOrder(1, "Coffee", ethers.utils.parseEther("0.01"), "ke474rf", 1, 2, 3, 1234, {gasLimit: 3000000, value: ethers.utils.parseEther("0.01")} );
+            placeOrderDetails.wait();
+            console.log(placeOrderDetails);
+            setSuccessSnackbarMessage("Order Placed")
+            handleClickSuccess();
+        }
+        catch (err){
+            setErrorSnackbarMessage(err.message);
+            handleClickError();
+        }
+
+    }
+
+    const getOrderDetails= async() =>{
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(contractAddress, SupplyChain.abi, signer);
+
+        try{
+            const orderHistoryDetails = contract.getOrderStatus(1);
+            console.log(orderHistoryDetails);
+        }
+        catch (err){
+            setErrorSnackbarMessage(err.message);
+            handleClickError();
+        }
+    }
+
+    const transferOrderDetails = async () => {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(contractAddress, SupplyChain.abi, signer);
+
+        try {
+            const orderTransferDetails = await contract.transferOrder(1, "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC", 2, 2, 4, {gasLimit: 3000000});
+            orderTransferDetails.wait();
+            console.log(orderTransferDetails);
+            setSuccessSnackbarMessage("Order transferred successfully");
+            handleClickSuccess();
+        } catch (err) {
+            if(err.message.search("Current owner nor carrying out transaction")!==-1)
+                setErrorSnackbarMessage("Access Denied: Current owner nor carrying out transaction");
+            if(err.message.search("function selector was not recognized and there's no fallback function")!==-1)
+                setErrorSnackbarMessage("Order Doesn't exist");
+            else
+                setErrorSnackbarMessage(err.message);
+            handleClickError();
+        }
+    }
+
+
+
+
+
+    const [openSuccessSnackbar, setOpenSuccessSnackbar] = React.useState(false);
+    const [successSnackbarMessage, setSuccessSnackbarMessage] = useState("");
+    const handleClickSuccess = () => {
+        setOpenSuccessSnackbar(true);
+    };
+
+    const handleCloseSuccess = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setOpenSuccessSnackbar(false);
+    };
+
+
+    const successSnackbar = () => {
+    return(
+            <Snackbar open={openSuccessSnackbar} autoHideDuration={6000} onClose={handleCloseSuccess}>
+                <Alert onClose={handleCloseSuccess} severity="success" sx={{ width: '100%' }}>
+                    {successSnackbarMessage}
+                </Alert>
+            </Snackbar>
+        )
+    }
+    const [openErrorSnackbar, setOpenErrorSnackbar] = React.useState(false);
+    const [errorSnackbarMessage, setErrorSnackbarMessage] = useState("");
+
+    const handleClickError = () => {
+        setOpenErrorSnackbar(true);
+    };
+
+    const handleCloseError = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setOpenErrorSnackbar(false);
+    };
+
+
+    const errorSnackbar = () => {
+    return(
+            <Snackbar open={openErrorSnackbar} autoHideDuration={6000} onClose={handleCloseError}>
+                <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
+                    {errorSnackbarMessage}
+                </Alert>
+            </Snackbar>
+        )
+    }
+
+
+    return (
+        <div className='wrapper'>
+            <button className="placeOrder" onClick={placeOrder}>
+                placeOrder
+            </button>
+            <button className="getOrderDetails" onClick={getOrderDetails}>
+                get order details
+            </button>
+            <button className="openSnackbar" onClick={handleClickSuccess}>
+                success sb
+            </button>
+            <button className="openErrorSnackbar" onClick={handleClickError}>
+                error sb
+            </button>
+            <button className="transferOrder" onClick={transferOrderDetails}>
+                Transfer Order
+            </button>
+            {successSnackbar()}
+            {errorSnackbar()}
+        </div>
+    );
+}
+
+export default HomePage;

@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 import "hardhat/console.sol";
 
 contract AmazonDelivery{
-    address contractOwner;
+    address payable contractOwner;
     uint orderID = 0;
     uint productID = 0;
     uint userID = 0;
@@ -22,9 +22,6 @@ contract AmazonDelivery{
         uint accelerometerX;  //accelerometerPitch
         uint accelerometerY;  //accelerometerRoll
         uint accelerometerZ;  //accelerometerAzimuth
-        uint gyroscopeX;
-        uint gyroscopeY;
-        uint gyroscopeZ;
     }
 
     // Struct to store product history
@@ -35,7 +32,7 @@ contract AmazonDelivery{
         uint transferredOnBackend;
         uint transactionTime;
         bool validQuality;
-        address currentOwner;
+        address payable currentOwner;
         bool refundStatus;
         OwnerType ownerType;
     }
@@ -43,175 +40,94 @@ contract AmazonDelivery{
     // Order Details struct
     struct OrderDetails{
         uint oid;
+        string boxHash;
         uint productId;
-        uint productName;
+        string orderProductName;
         uint orderValue;
         address customerAddress;
     }
 
-
-    // User struct
-    struct Users{
-        uint uID;
-        string name;
-        string email;
-    }
-
     mapping(uint => ProductHistory[]) public history;
-    mapping(address => OrderDetails[]) public userOrderHistory;
-    mapping(address => Users) public users;
-    mapping(uint => string) public productName;
 
-    // modifier to check if user is registered or not
-    modifier registeredUserModifier(address userAddress){
-        require(
-            users[userAddress].uID>0,
-            "User not registered."
-        );
-        _;
-    }
-
-    // check if user is not registered
-    modifier unRegisteredUserModifier(address userAddress){
-        require(
-            !(users[userAddress].uID>0),
-            "User not registered."
-        );
-        _;
-    }
+    event transferOwnership(uint _orderID, address payable _transferredTo);
+    event PlacedOrder(uint _orderID, uint _productID, address _customerAddress, uint _orderValue);
 
     constructor() public {
-        contractOwner = msg.sender;
-    }
-
-    function getUserDetails() public view returns(Users memory){
-        //check at frontend name should not be empty
-        return users[msg.sender];
+        contractOwner = payable(msg.sender);
     }
 
     function getOrderID() public view returns(uint){
-        console.log(orderID);
         return orderID;
     }
 
-    function registerProduct(string memory _productName) public {
-        productID = productID + 1;
-        productName[productID] = _productName;
-    }
-
-    function placeOrder(uint _orderID, uint _productID, uint _productName, uint _orderValue, address _customerAddress,uint _accelerometerX, uint _accelerometerY, uint _accelerometerZ, uint _gyroscopeX, uint _gyroscopeY, uint _gyroscopeZ) public registeredUserModifier(msg.sender) returns(uint){
+    function placeOrder(uint _productID, string memory _productName, uint _orderValue, string memory _boxHash, uint _accelerometerX, uint _accelerometerY, uint _accelerometerZ, uint _transferredOnBackend) public payable{
+        require(msg.value == _orderValue, "Amount Paid is not correct");
         orderID= orderID + 1;
+        emit PlacedOrder(orderID, _productID, msg.sender, _orderValue);
         ProductHistory memory _productHistory;
-        PhysicalReadings memory _physicalReadings = getPhysicalReadings(_accelerometerX, _accelerometerY, _accelerometerZ, _gyroscopeX, _gyroscopeY, _gyroscopeZ);
-        OrderDetails memory _orderDetails = getOrderDetails(_orderID, _productID, _productName, _orderValue, _customerAddress);
-        _productHistory = insertID(_productHistory, _productID);
-        _productHistory = insertDescriptionAndTimestamp(_productHistory, _description);
+        PhysicalReadings memory _physicalReadings = getPhysicalReadings(_accelerometerX, _accelerometerY, _accelerometerZ);
+        OrderDetails memory _orderDetails = getOrderDetails(orderID, _productID, _productName, _orderValue, msg.sender, _boxHash);
         _productHistory.physicalReadings = _physicalReadings;
-        _productHistory =insertGPSCoordinates(_productHistory, _latitude, _longitude);
+        _productHistory.orderDetails = _orderDetails;
+        _productHistory.oid = orderID;
+        _productHistory = insertFirstEntry(_productHistory, _transferredOnBackend);
         history[orderID].push(_productHistory);
-        return orderID;
     }
 
-    function getOrderDetails(uint _orderID, uint _productID, uint _productName, uint _orderValue, address _customerAddress) internal view returns( OrderDetails memory){
+    function getOrderDetails(uint _orderID, uint _productID, string memory _productName, uint _orderValue, address _customerAddress, string memory _boxHash) internal view returns( OrderDetails memory){
 
         OrderDetails memory _orderDetails = OrderDetails({
             oid: _orderID,
             customerAddress: _customerAddress,
             productId: _productID,
-            productName: _productName,
-            orderValue : _orderValue
+            orderProductName: _productName,
+            orderValue : _orderValue,
+            boxHash: _boxHash
         });
         return _orderDetails;
     }
 
-    function insertPhysicalReadings(uint _accelerometerX, uint _accelerometerY, uint _accelerometerZ, uint _gyroscopeX, uint _gyroscopeY, uint _gyroscopeZ) public view returns(PhysicalReadings memory){
+    function getPhysicalReadings(uint _accelerometerX, uint _accelerometerY, uint _accelerometerZ) public view returns(PhysicalReadings memory){
         PhysicalReadings memory _physicalReadings = PhysicalReadings({
             accelerometerX: _accelerometerX,
             accelerometerY: _accelerometerY,
-            accelerometerZ: _accelerometerZ,
-            gyroscopeX: _gyroscopeX,
-            gyroscopeY : _gyroscopeY,
-            gyroscopeZ : _gyroscopeZ
+            accelerometerZ: _accelerometerZ
         });
         return _physicalReadings;
     }
 
-    function insertDescriptionAndTimestamp(ProductHistory memory _productHistory, string memory _description) internal returns(ProductHistory memory){
-        _productHistory.description= _description;
-        _productHistory.transferredOn= block.timestamp;
+    function insertFirstEntry(ProductHistory memory _productHistory, uint _transferredOnBackend) internal returns(ProductHistory memory){
+        _productHistory.transferredOnBackend= _transferredOnBackend;
         _productHistory.transactionTime= block.timestamp;
+        _productHistory.currentOwner= payable(contractOwner);
+        _productHistory.refundStatus= false;
+        _productHistory.ownerType = OwnerType.Factory;
         return _productHistory;
     }
 
-    function getPhysicalReadings( uint _temperatureThresholdHigh, uint _humidityThresholdHigh, uint _temperatureThresholdLow, uint _humidityThresholdLow, uint _temperature, uint _humidity) internal pure returns(PhysicalReadings memory){
-        PhysicalReadings memory _physicalReadings = PhysicalReadings({
-            temperatureThresholdHigh: _temperatureThresholdHigh,
-            humidityThresholdHigh: _humidityThresholdHigh,
-            temperatureThresholdLow: _temperatureThresholdLow,
-            humidityThresholdLow: _humidityThresholdLow,
-            temperature : _temperature,
-            humidity : _humidity
-        });
-        return _physicalReadings;
+    function transferOrder(uint _orderID, address payable _transferredTo, uint _accelerometerX, uint _accelerometerY, uint _accelerometerZ) public {
+        ProductHistory memory _product = history[_orderID][history[_orderID].length-1];
+        require(_product.currentOwner == payable(msg.sender), "Current owner nor carrying out transaction");
+//        require(_product.validQuality);
+        _product.currentOwner = _transferredTo;
+        _product.transferredOnBackend = block.timestamp;
+        _product.transactionTime= block.timestamp;
+        (msg.sender == _product.orderDetails.customerAddress) ? _product.ownerType = OwnerType.Customer : _product.ownerType = OwnerType.Delivery;
+        history[_orderID].push(_product);
+        emit transferOwnership(_orderID, _transferredTo);
     }
 
-    function registerUser(string memory _name, string memory _email) public returns(uint){
-        //        require(_name!= "", "Name should not be Blank");
-        //        require(_email!="",  "Email should not be Blank");
-        userID = userID + 1 ;
-        Users memory userData= Users({
-        uID: userID,
-        name: _name,
-        email: _email
-        });
-        users[msg.sender] = userData;
-        return userID;
-    }
-
-    function transferOrder(uint orderIDV, address transferredTo, uint latitude, uint longitude, uint temperature, uint humidity, string memory description) public returns(uint){
-        ProductHistory memory product = history[orderIDV][history[orderIDV].length-1];
-        require(product.ownerAddress == msg.sender);
-        require(product.validQuality);
-        product.transferredOn = block.timestamp;
-        product.ownerAddress = transferredTo;
-        product.transactionTime= block.timestamp;
-        product.description = description;
-        product.level = product.level + 1;
-        history[orderIDV].push(product);
-        return orderIDV;
-    }
-
-    function qualityEntry(uint orderIDV, uint latitude, uint longitude, uint temperature, uint humidity) public {
-        //Check if no order done
-        require(orderIDV!=0);
-        ProductHistory memory product = history[orderIDV][history[orderIDV].length-1];
-        bool validQualityV = validQuality(orderIDV, temperature, humidity, product.physicalReadings.humidityThresholdHigh, product.physicalReadings.humidityThresholdHigh, product.physicalReadings.temperatureThresholdLow, product.physicalReadings.humidityThresholdLow);
-        require(product.validQuality);
-        product.latitude = latitude;
-        product.longitude = longitude;
-        product.physicalReadings.temperature = temperature;
-        product.physicalReadings.humidity = humidity;
-        product.transactionTime= block.timestamp;
-        product.validQuality = validQualityV;
-        history[orderIDV].push(product);
-    }
-
-    function getOrderStatus(uint orderIDV) public view returns(ProductHistory[] memory){
-        return history[orderIDV];
+    //get order status
+    function getOrderStatus(uint _orderID) public view returns(ProductHistory[] memory){
+        return history[_orderID];
     }
 
 
-    function getQualityStatus(uint orderIDV) public view returns(bool){
-        return history[orderIDV][history[orderIDV].length-1].validQuality;
+    // Only final Customer can view and match the box hash
+    function getBoxDetails(uint _orderID) public view returns(string memory){
+        require(msg.sender == history[_orderID][0].orderDetails.customerAddress, "Not the final customer");
+        return history[_orderID][0].orderDetails.boxHash;
     }
-
-    function validQuality( uint orderIDV, uint temperature, uint humidity, uint temperatureThresholdHigh, uint humidityThresholdHigh, uint temperatureThresholdLow, uint humidityThresholdLow) internal view returns(bool) {
-        ProductHistory memory product = history[orderIDV][history[orderIDV].length-1];
-        if((product.validQuality) && (temperature <= temperatureThresholdHigh) && (temperature >= temperatureThresholdLow) && (humidity >= humidityThresholdLow) && (humidity <= humidityThresholdHigh))
-            return true;
-        return false;
-    }
-
 
     function approveRefund(uint _orderID) public {
         require(msg.sender==contractOwner, "Access to refund denied");
@@ -222,10 +138,37 @@ contract AmazonDelivery{
         history[_orderID].push(productHistory);
     }
 
+
 //    Refund amount to the customer for returned
     function refundAmount(uint _orderID, uint amount) internal {
-//        require(msg.sender==contractOwner, "Access to refund denied");
-        history[_orderID].currentOwner.transfer(history[_orderID][0].orderDetails.customerAddress);
+        require(msg.sender==contractOwner, "Access to refund denied");
+        history[_orderID][history[_orderID].length-1].currentOwner.transfer(history[_orderID][0].orderDetails.orderValue);
     }
-
 }
+
+//    function getQualityStatus(uint _orderID) public view returns(bool){
+//        return history[_orderID][history[_orderID].length-1].validQuality;
+//    }
+
+
+
+//    function qualityEntry(uint _orderID, uint _accelerometerX, uint _accelerometerY, uint _accelerometerZ, uint _transferredOnBackend) public {
+//        //Check if no order done
+//        require(_orderID!=0);
+//        ProductHistory memory product = history[_orderID][history[_orderID].length-1];
+////        bool validQualityV = validQuality(_orderID, temperature, humidity, product.physicalReadings.humidityThresholdHigh, product.physicalReadings.humidityThresholdHigh, product.physicalReadings.temperatureThresholdLow, product.physicalReadings.humidityThresholdLow);
+////        require(product.validQuality);
+//
+//        product.transferredOnBackend = _transferredOnBackend;
+//        product.transactionTime= block.timestamp;
+////        product.validQuality = validQualityV;
+//        product.validQuality = true;
+//        history[_orderID].push(product);
+//    }
+
+//    function validQuality( uint _orderID, uint temperature, uint humidity, uint temperatureThresholdHigh, uint humidityThresholdHigh, uint temperatureThresholdLow, uint humidityThresholdLow) internal view returns(bool) {
+//        ProductHistory memory product = history[_orderID][history[_orderID].length-1];
+//        if((product.validQuality) && (temperature <= temperatureThresholdHigh) && (temperature >= temperatureThresholdLow) && (humidity >= humidityThresholdLow) && (humidity <= humidityThresholdHigh))
+//            return true;
+//        return false;
+//    }

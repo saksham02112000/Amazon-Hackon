@@ -21,15 +21,15 @@ async function main() {
   console.log("Lock with 1 ETH deployed to:", lock.address);
 
 
-  // const AmazonDelivery = await hre.ethers.getContractFactory("AmazonDelivery");
-  // const amazonDelivery = await AmazonDelivery.deploy();
-  // await amazonDelivery.deployed();
-  // console.log("AmazonDelivery deployed to:", amazonDelivery.address);
+  const AmazonDelivery = await hre.ethers.getContractFactory("AmazonDelivery");
+  const amazonDelivery = await AmazonDelivery.deploy();
+  await amazonDelivery.deployed();
+  console.log("AmazonDelivery deployed to:", amazonDelivery.address);
 
-  const NFTMarketplace = await hre.ethers.getContractFactory("NFTMarketplace");
-  const nftMarketplace = await NFTMarketplace.deploy();
-  await nftMarketplace.deployed();
-  console.log("NFTMarketplace deployed to:", nftMarketplace.address);
+  // const NFTMarketplace = await hre.ethers.getContractFactory("NFTMarketplace");
+  // const nftMarketplace = await NFTMarketplace.deploy();
+  // await nftMarketplace.deployed();
+  // console.log("NFTMarketplace deployed to:", nftMarketplace.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
