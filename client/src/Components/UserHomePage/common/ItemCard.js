@@ -42,12 +42,12 @@ export default function ItemCard({ item, sellerItem }) {
                     "x-access-token": localStorage.getItem("authtoken"),
                 },
             })
-                .then(res=> res.json());
+                .then(res => res.json());
             // console.log(signing_message.signing_message);
 
             const signed_message = await signer.signMessage(signing_message.signing_message)
-                .then(res=> (res))
-                .catch(err=> err);
+                .then(res => (res))
+                .catch(err => err);
             // console.log(signed_message);
             // console.log("dsd")
             // const x  = ethers.utils.verifyMessage(signing_message.signing_message, signed_message);
@@ -59,7 +59,7 @@ export default function ItemCard({ item, sellerItem }) {
                     "x-access-token": localStorage.getItem("authtoken"),
                     "Content-Type": 'application/json'
                 },
-                body: JSON.stringify({signedMessage: signed_message})
+                body: JSON.stringify({ signedMessage: signed_message })
             });
         }
         catch (err) {
@@ -164,7 +164,7 @@ export default function ItemCard({ item, sellerItem }) {
                 </Typography>
             </CardContent>
             <CardActions>
-                {sellerItem ? <></> : <Button variant="contained" size="small" onClick={()=> buyOrder(item._id, item.name, item.price)}>Buy Now</Button>}
+                {sellerItem ? <></> : <Button variant="contained" size="small" onClick={() => buyOrder(item._id, item.name, item.price)}>Buy Now</Button>}
                 {/* <Button size="small">Learn More</Button> */}
             </CardActions >
         </Card >
