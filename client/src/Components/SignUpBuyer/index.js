@@ -117,7 +117,7 @@ export default function SignUpBuyer() {
                         }
                         return res.json();
                     })
-                    // .then((data)=> window.location.pathname="login")
+                    .then((data)=> window.location.pathname="login")
                     .catch((err) => {
                         setOpen(true);
                         err.then((data) => {

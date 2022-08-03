@@ -20,18 +20,17 @@ const Alert = React.forwardRef(function Alert(props, ref) {
 });
 export default function ItemCard({ item, sellerItem }) {
 
-    const contractAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
+    const contractAddress = `${process.env.REACT_APP_SMART_CONTRACT_ADDRESS}`;
 
 
     const placeOrder = async (_orderId, _productId, _productName, _productPrice, _stacId, _accelerometerX, _accelerometerY, _accelerometerZ, _timeBackend) => {
 
-        console.log("hsodn");
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
         const contract = new ethers.Contract(contractAddress, SupplyChain.abi, signer);
 
         try {
-            const placeOrderDetails = await contract.placeOrder(_orderId, _productId, _productName, ethers.utils.parseEther(_productPrice), _stacId, _accelerometerX, _accelerometerY, _accelerometerZ, _timeBackend, { gasLimit: 3000000, value: ethers.utils.parseEther(_productPrice) });
+            const placeOrderDetails = await contract.placeOrder(_orderId, _productId, _productName, ethers.utils.parseEther(_productPrice), _stacId, _accelerometerX, _accelerometerY, _accelerometerZ, _timeBackend, { gasLimit: 3000000, value: ethers.utils.parseEther(_productPrice)/10000 });
             placeOrderDetails.wait();
             console.log(placeOrderDetails);
             setSuccessSnackbarMessage("Order Placed")
@@ -165,7 +164,6 @@ export default function ItemCard({ item, sellerItem }) {
             </CardContent>
             <CardActions>
                 {sellerItem ? <></> : <Button variant="contained" size="small" onClick={()=> buyOrder(item._id, item.name, item.price)}>Buy Now</Button>}
-                {/* <Button size="small">Learn More</Button> */}
             </CardActions >
         </Card >
     );

@@ -110,6 +110,7 @@ export default function SignUpPageSeller() {
                         }
                         return res.json();
                     })
+                    .then(data=> window.location.pathname="login")
                     .catch((err) => {
                         setOpen(true);
                         err.then((data) => {

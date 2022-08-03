@@ -178,9 +178,15 @@ export default function LoginPage() {
                                         Forgot password?
                                     </Link>
                                 </Grid>
+                                Sign Up as:
                                 <Grid item>
-                                    <Link href="signup" variant="body2">
-                                        {"Don't have an account? Sign Up"}
+                                    <Link href="signup/seller" variant="body2">
+                                        {"Seller | "}
+                                    </Link>
+                                </Grid>
+                                <Grid item>
+                                    <Link href="signup/buyer" variant="body2">
+                                        {"| Buyer"}
                                     </Link>
                                 </Grid>
                             </Grid>

@@ -22,7 +22,7 @@ const Alert = React.forwardRef(function Alert(props, ref) {
 });
 export default function OrderCard({ item }) {
 
-    const contractAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
+    const contractAddress = `${process.env.REACT_APP_SMART_CONTRACT_ADDRESS}`;
     const [open, setOpen] = React.useState(false);
     const handleOpen =  () => {
          setOpen(true);
