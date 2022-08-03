@@ -30,7 +30,7 @@ export default function ItemCard({ item, sellerItem }) {
         const contract = new ethers.Contract(contractAddress, SupplyChain.abi, signer);
 
         try {
-            const placeOrderDetails = await contract.placeOrder(_orderId, _productId, _productName, ethers.utils.parseEther(_productPrice), _stacId, _accelerometerX, _accelerometerY, _accelerometerZ, _timeBackend, { gasLimit: 3000000, value: ethers.utils.parseEther(_productPrice)/10000 });
+            const placeOrderDetails = await contract.placeOrder(_orderId, _productId, _productName, ethers.utils.parseEther(_productPrice), _stacId, _accelerometerX, _accelerometerY, _accelerometerZ, _timeBackend, { gasLimit: 30000000, value: ethers.utils.parseEther(_productPrice) });
             placeOrderDetails.wait();
             console.log(placeOrderDetails);
             setSuccessSnackbarMessage("Order Placed")
@@ -63,6 +63,7 @@ export default function ItemCard({ item, sellerItem }) {
         }
         catch (err) {
             console.log("pp")
+            console.log(err);
             setErrorSnackbarMessage(err.message);
             handleClickError();
         }
@@ -129,7 +130,7 @@ export default function ItemCard({ item, sellerItem }) {
             "body": JSON.stringify({ itemId: id })
         }).then(res => res.json())
 
-        await placeOrder(createOrder.orderId, id, name, price.toString(), createOrder.stacId, 1, 235, 35, createOrder.timestamp);
+        await placeOrder(createOrder.orderId, id, name, (price).toString(), createOrder.stacId, 1, 235, 35, createOrder.timestamp);
     }
 
     async function deleteItem({ id }) {
