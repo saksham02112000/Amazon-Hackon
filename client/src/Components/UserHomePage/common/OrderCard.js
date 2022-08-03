@@ -11,10 +11,11 @@ import Backdrop from '@mui/material/Backdrop';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import Fade from '@mui/material/Fade';
-import {useState} from "react";
-import {Snackbar} from "@mui/material";
+import { useState } from "react";
+import { Snackbar } from "@mui/material";
 import MuiAlert from '@mui/material/Alert';
-import {ethers} from "ethers";
+import { ethers } from "ethers";
+import Brightness1Icon from '@mui/icons-material/Brightness1';
 import SupplyChain from "../../../artifacts/contracts/AmazonDelivery.sol/AmazonDelivery.json";
 
 const Alert = React.forwardRef(function Alert(props, ref) {
@@ -24,8 +25,8 @@ export default function OrderCard({ item }) {
 
     const contractAddress = `${process.env.REACT_APP_SMART_CONTRACT_ADDRESS}`;
     const [open, setOpen] = React.useState(false);
-    const handleOpen =  () => {
-         setOpen(true);
+    const handleOpen = () => {
+        setOpen(true);
     }
     const handleClose = () => setOpen(false);
 
@@ -69,7 +70,7 @@ export default function OrderCard({ item }) {
 
 
     const successSnackbar = () => {
-        return(
+        return (
             <Snackbar open={openSuccessSnackbar} autoHideDuration={6000} onClose={handleCloseSuccess}>
                 <Alert onClose={handleCloseSuccess} severity="success" sx={{ width: '100%' }}>
                     {successSnackbarMessage}
@@ -93,7 +94,7 @@ export default function OrderCard({ item }) {
 
 
     const errorSnackbar = () => {
-        return(
+        return (
             <Snackbar open={openErrorSnackbar} autoHideDuration={6000} onClose={handleCloseError}>
                 <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
                     {errorSnackbarMessage}
@@ -102,7 +103,7 @@ export default function OrderCard({ item }) {
         )
     }
 
-    const getOrderDetails= async(id) =>{
+    const getOrderDetails = async (id) => {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         // const provider = new ethers.providers.JsonRpcProvider("http://localhost:8545");
         const signer = provider.getSigner();
@@ -115,47 +116,47 @@ export default function OrderCard({ item }) {
             console.log(orderHistoryDetails);
             let returnVal = [];
             // const setValOrderHistory = () => {
-                for (let i = 0; i < orderHistoryDetails.length; i++) {
-                    const itrValue = {
-                        oid: orderHistoryDetails[i].oid,
-                        orderDetails: {
-                            oid: orderHistoryDetails[i].orderDetails.oid,
-                            boxHash: orderHistoryDetails[i].orderDetails.boxHash,
-                            productId: orderHistoryDetails[i].orderDetails.productId,
-                            orderProductName: orderHistoryDetails[i].orderDetails.orderProductName,
-                            orderValue: ethers.utils.formatEther(orderHistoryDetails[i].orderDetails.orderValue),
-                            customerAddress: orderHistoryDetails[i].orderDetails.customerAddress
-                        },
-                        physicalReadings: {
-                            accelerometerX: orderHistoryDetails[i].physicalReadings.accelerometerX.toNumber(),
-                            accelerometerY: orderHistoryDetails[i].physicalReadings.accelerometerY.toNumber(),
-                            accelerometerZ: orderHistoryDetails[i].physicalReadings.accelerometerZ.toNumber(),
-                        },
-                        transferredOnBackend: orderHistoryDetails[i].transferredOnBackend,
-                        transactionTime: orderHistoryDetails[i].transactionTime.toNumber(),
-                        validQuality: orderHistoryDetails[i].validQuality,
-                        currentOwner: orderHistoryDetails[i].currentOwner,
-                        refundStatus: orderHistoryDetails[i].refundStatus,
-                        ownerType: orderHistoryDetails[i].ownerType
-                    }
-                    console.log(itrValue);
-                    returnVal.push(itrValue);
+            for (let i = 0; i < orderHistoryDetails.length; i++) {
+                const itrValue = {
+                    oid: orderHistoryDetails[i].oid,
+                    orderDetails: {
+                        oid: orderHistoryDetails[i].orderDetails.oid,
+                        boxHash: orderHistoryDetails[i].orderDetails.boxHash,
+                        productId: orderHistoryDetails[i].orderDetails.productId,
+                        orderProductName: orderHistoryDetails[i].orderDetails.orderProductName,
+                        orderValue: ethers.utils.formatEther(orderHistoryDetails[i].orderDetails.orderValue),
+                        customerAddress: orderHistoryDetails[i].orderDetails.customerAddress
+                    },
+                    physicalReadings: {
+                        accelerometerX: orderHistoryDetails[i].physicalReadings.accelerometerX.toNumber(),
+                        accelerometerY: orderHistoryDetails[i].physicalReadings.accelerometerY.toNumber(),
+                        accelerometerZ: orderHistoryDetails[i].physicalReadings.accelerometerZ.toNumber(),
+                    },
+                    transferredOnBackend: orderHistoryDetails[i].transferredOnBackend,
+                    transactionTime: orderHistoryDetails[i].transactionTime.toNumber(),
+                    validQuality: orderHistoryDetails[i].validQuality,
+                    currentOwner: orderHistoryDetails[i].currentOwner,
+                    refundStatus: orderHistoryDetails[i].refundStatus,
+                    ownerType: orderHistoryDetails[i].ownerType
                 }
+                console.log(itrValue);
+                returnVal.push(itrValue);
+            }
             // }
             //     setValOrderHistory();
             //     console.log(setValOrderHistory);
-                setOrderHistory(returnVal);
-                handleOpen();
-            }
+            setOrderHistory(returnVal);
+            handleOpen();
+        }
 
-        catch (err){
+        catch (err) {
             setErrorSnackbarMessage(err.message);
             handleClickError();
         }
     }
 
     const style = {
-        color:"black",
+        color: "black",
         position: 'absolute',
         top: '50%',
         left: '50%',
@@ -190,7 +191,12 @@ export default function OrderCard({ item }) {
                 </Typography>
             </CardContent>
             <CardActions>
-                <Button variant="contained" onClick={()=> getOrderDetails(item._id)} size="small">View Details</Button>
+                <Button variant="contained" onClick={() => getOrderDetails(item._id)} size="small">View Details</Button>
+                {
+                    item.inspectionNeeded ?
+                        <span style={{ display: "flex", justifyContent: "center", alignItems: "center", textAlign: "center", fontSize: "18px", marginLeft: "auto", fontWeight: "500", color: "red" }}><span><Brightness1Icon style={{ fontSize: "12px" }} /></span>Inspect pacakge</span>
+                        : <></>
+                }
                 {/* <Button size="small">Learn More</Button> */}
             </CardActions>
             <Modal
@@ -208,20 +214,20 @@ export default function OrderCard({ item }) {
                 <Fade in={open}>
                     <Box sx={style}>
                         {
-                            orderHistory.map((item, index)=>{
-                                return(
+                            orderHistory.map((item, index) => {
+                                return (
                                     <>
                                         <div><h3>{index + 1}</h3></div>
-                                          <div>OrderID: {item.oid}</div>
-                                          <div>CustomerAddress: {item.orderDetails.customerAddress}</div>
-                                          <div>Box Hash: {item.orderDetails.boxHash}</div>
-                                          <div>Product ID: {item.orderDetails.productId}</div>
-                                          <div>Product Name: {item.orderDetails.orderProductName}</div>
-                                          <div>Current Owner: {item.currentOwner}</div>
-                                          <div>Accelerometer Readings (x,y,z): ({item.physicalReadings.accelerometerX},{item.physicalReadings.accelerometerY},{item.physicalReadings.accelerometerY})</div>
+                                        <div>OrderID: {item.oid}</div>
+                                        <div>CustomerAddress: {item.orderDetails.customerAddress}</div>
+                                        <div>Box Hash: {item.orderDetails.boxHash}</div>
+                                        <div>Product ID: {item.orderDetails.productId}</div>
+                                        <div>Product Name: {item.orderDetails.orderProductName}</div>
+                                        <div>Current Owner: {item.currentOwner}</div>
+                                        <div>Accelerometer Readings (x,y,z): ({item.physicalReadings.accelerometerX},{item.physicalReadings.accelerometerY},{item.physicalReadings.accelerometerY})</div>
 
                                         <br />
-                                      </>
+                                    </>
                                 )
                             })
                         }
